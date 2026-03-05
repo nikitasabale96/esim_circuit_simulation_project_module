@@ -164,7 +164,7 @@ function CreateReadmeFileeSimCircuitSimulationProject($proposal_id)
     ":proposal_id" => $proposal_id
   ));
   $proposal_data = $result->fetchObject();
-  $root_path = circuit_simulation_path();
+  $root_path = $this->circuit_simulation_path();
   $readme_file = fopen($root_path . $proposal_data->directory_name . "/README.txt", "w") or die("Unable to open file!");
   $txt = "";
   $txt .= "About the Circuit Simulation";
@@ -186,7 +186,7 @@ function rrmdir_project($prop_id)
     ":proposal_id" => $proposal_id
   ));
   $proposal_data = $result->fetchObject();
-  $root_path = circuit_simulation_path();
+  $root_path = $this->circuit_simulation_path();
   $dir = $root_path . $proposal_data->directory_name;
   if ($proposal_data->id == $prop_id)
   {
@@ -253,7 +253,7 @@ function CS_RenameDir($proposal_id, $dir_name)
 {
   $proposal_id = $proposal_id;
   $dir_name = $dir_name;
-  $root_path = circuit_simulation_path();
+  $root_path = $this->circuit_simulation_path();
   $query = \Drupal::database()->query("SELECT directory_name,id FROM esim_circuit_simulation_proposal WHERE id = :proposal_id", array(
     ':proposal_id' => $proposal_id
   ));
@@ -289,7 +289,7 @@ function CS_RenameDir($proposal_id, $dir_name)
 }
 function circuit_simulation_abstract_delete_project($proposal_id) {
   $status = TRUE;
-  $root_path = circuit_simulation_path();
+  $root_path = $this->circuit_simulation_path();
 
   // Fetch the proposal data.
   $connection = \Drupal::database();

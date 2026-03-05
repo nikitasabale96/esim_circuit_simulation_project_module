@@ -85,7 +85,7 @@ class CircuitSimulationProposalForm extends FormBase {
     $form['contributor_name'] = [
       '#type' => 'textfield',
       '#title' => t('Name of the contributor'),
-      '#size' => 250,
+      // '#size' => 250,
       '#attributes' => [
         'placeholder' => t('Enter your full name.....')
         ],
@@ -95,7 +95,7 @@ class CircuitSimulationProposalForm extends FormBase {
     $form['contributor_contact_no'] = [
       '#type' => 'textfield',
       '#title' => t('Contact No.'),
-      '#size' => 10,
+      // '#size' => 10,
       '#attributes' => [
         'placeholder' => t('Enter your contact number')
         ],
@@ -104,14 +104,14 @@ class CircuitSimulationProposalForm extends FormBase {
     $form['contributor_email_id'] = [
       '#type' => 'textfield',
       '#title' => t('Email'),
-      '#size' => 30,
+      // '#size' => 30,
       '#value' => $user->getEmail(),
       '#disabled' => TRUE,
     ];
     $form['project_guide_name'] = [
       '#type' => 'textfield',
       '#title' => t('Project guide'),
-      '#size' => 250,
+      // '#size' => 250,
       '#attributes' => [
         'placeholder' => t('Enter full name of project guide')
         ],
@@ -120,12 +120,12 @@ class CircuitSimulationProposalForm extends FormBase {
     $form['project_guide_email_id'] = [
       '#type' => 'textfield',
       '#title' => t('Project guide email'),
-      '#size' => 30,
+      // '#size' => 30,
     ];
     $form['university'] = [
       '#type' => 'textfield',
       '#title' => t('University/ Institute'),
-      '#size' => 80,
+      // '#size' => 80,
       '#maxlength' => 200,
       '#required' => TRUE,
       '#attributes' => [
@@ -146,7 +146,7 @@ class CircuitSimulationProposalForm extends FormBase {
     $form['other_country'] = [
       '#type' => 'textfield',
       '#title' => t('Other than India'),
-      '#size' => 100,
+      // '#size' => 100,
       '#attributes' => [
         'placeholder' => t('Enter your country name')
         ],
@@ -161,7 +161,7 @@ class CircuitSimulationProposalForm extends FormBase {
     $form['other_state'] = [
       '#type' => 'textfield',
       '#title' => t('State other than India'),
-      '#size' => 100,
+      // '#size' => 100,
       '#attributes' => [
         'placeholder' => t('Enter your state/region name')
         ],
@@ -176,7 +176,7 @@ class CircuitSimulationProposalForm extends FormBase {
     $form['other_city'] = [
       '#type' => 'textfield',
       '#title' => t('City other than India'),
-      '#size' => 100,
+      // '#size' => 100,
       '#attributes' => [
         'placeholder' => t('Enter your city name')
         ],
@@ -216,7 +216,7 @@ class CircuitSimulationProposalForm extends FormBase {
     $form['pincode'] = [
       '#type' => 'textfield',
       '#title' => t('Pincode'),
-      '#size' => 6,
+      // '#size' => 6,
     ];
     /***************************************************************************/
     $form['hr'] = [
@@ -227,15 +227,15 @@ class CircuitSimulationProposalForm extends FormBase {
       '#type' => 'textfield',
       '#title' => t('Project Title'),
       '#maxlength' => 250,
-      '#size' => 250,
+      // '#size' => 250,
       '#description' => t('Maximum character limit is 250'),
       '#required' => TRUE,
     ];
     $form['description'] = [
       '#type' => 'textarea',
       '#title' => t('Description'),
-      '#size' => 250,
-      '#description' => t('Minimum character limit is 500 and Maximum character limit is 700'),
+      // '#size' => 250,
+      // '#description' => t('Minimum character limit is 500 and Maximum character limit is 700'),
       '#required' => TRUE,
     ];
     $form['operating_system'] = [
@@ -259,14 +259,14 @@ class CircuitSimulationProposalForm extends FormBase {
   '#type' => 'file',
   '#title' => $this->t('Upload circuit diagram'),
   '#description' => $this->t('Upload filenames with allowed extensions only. No spaces or any special characters allowed in the filename.') . '<br />' . '<span style="color:red;">' . $this->t('Allowed file extensions: ') . \Drupal::config('circuit_simulation.settings')->get('resource_upload_extensions') . '</span>',
-  '#size' => 48,
+  // '#size' => 48,
 ];
 
     $form['reference'] = [
       '#type' => 'textfield',
       '#description' => t('The links to the documents or websites which are referenced while proposing this project.'),
       '#title' => t('Reference'),
-      '#size' => 250,
+      // '#size' => 250,
       '#required' => TRUE,
       '#attributes' => [
         'placeholder' => 'Enter reference'
@@ -360,8 +360,8 @@ class CircuitSimulationProposalForm extends FormBase {
         $form_state->setErrorByName('description', t('Maximum charater limit is 700 charaters only, please check the length of the description'));
       } //strlen($form_state['values']['project_title']) > 250
       else {
-        if (strlen($form_state->getValue(['description'])) < 500) {
-          $form_state->setErrorByName('description', t('Minimum charater limit is 500 charaters, please check the length of the description'));
+        if (strlen($form_state->getValue(['description'])) < 200) {
+          $form_state->setErrorByName('description', t('Minimum charater limit is 200 charaters, please check the length of the description'));
         }
       } //strlen($form_state['values']['project_title']) < 10
     } //$form_state['values']['project_title'] != ''
@@ -524,7 +524,8 @@ $proposal_id= $connection->insert('esim_circuit_simulation_proposal')->fields($a
           //var_dump($args);die;
 
           \Drupal::messenger()->addStatus($file_name . ' uploaded successfully.');
-        } //move_uploaded_file($_FILES['files']['tmp_name'][$file_form_name], $root_path . $dest_path . $_FILES['files']['name'][$file_form_name])
+        } 
+        //move_uploaded_file($_FILES['files']['tmp_name'][$file_form_name], $root_path . $dest_path . $_FILES['files']['name'][$file_form_name])
         else {
           \Drupal::messenger()->addError('Error uploading file : ' . $dest_path . '/' . $file_name);
         }
@@ -535,26 +536,46 @@ $proposal_id= $connection->insert('esim_circuit_simulation_proposal')->fields($a
       return;
     } //!$proposal_id
 	/* sending email */
-    // $email_to = $user->getEmail();
-    // $form = \Drupal::config('circuit_simulation.settings')->get('circuit_simulation_from_email');
-    // $bcc = \Drupal::config('circuit_simulation.settings')->get('circuit_simulation_emails');
-    // $cc = \Drupal::config('circuit_simulation.settings')->get('circuit_simulation_cc_emails');
-    // $params['circuit_simulation_proposal_received']['proposal_id'] = $proposal_id;
-    // $params['circuit_simulation_proposal_received']['user_id'] = $user->id();
-    // $params['circuit_simulation_proposal_received']['headers'] = [
-    //   'From' => $form,
-    //   'MIME-Version' => '1.0',
-    //   'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
-    //   'Content-Transfer-Encoding' => '8Bit',
-    //   'X-Mailer' => 'Drupal',
-    //   'Cc' => $cc,
-    //   'Bcc' => $bcc,
-    // ];
-    // if (!\Drupal::service('plugin.manager.mail')->mail('circuit_simulation', 'circuit_simulation_proposal_received', $email_to, 'en', $params, $form, TRUE)){
-    // //if (!\Drupal::service('circuit_simulation_mail')->circuit_simulation_mail('circuit_simulation', 'circuit_simulation_proposal_received', $email_to, 'en', $params, $form, TRUE)) {
-    //   \Drupal::messenger()->addError('Error sending email message.');
-    // }
-    \Drupal::messenger()->addStatus(t('We have received your eSim circuit simulation proposal. We will get back to you soon.'));
+
+/** @var \Drupal\user\Entity\User $user */
+$email_to = $user->getEmail();
+
+$config = \Drupal::config('circuit_simulation.settings');
+
+$from = $config->get('circuit_simulation_from_email');
+$bcc  = $config->get('circuit_simulation_emails');
+$cc   = $config->get('circuit_simulation_cc_emails');
+
+$params['circuit_simulation_proposal_received']['proposal_id'] = $proposal_id;
+$params['circuit_simulation_proposal_received']['user_id'] = $user->id();
+
+$params['circuit_simulation_proposal_received']['headers'] = [
+  'From' => $from,
+  'MIME-Version' => '1.0',
+  'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
+  'Content-Transfer-Encoding' => '8Bit',
+  'X-Mailer' => 'Drupal',
+  'Cc' => $cc,
+  'Bcc' => $bcc,
+];
+
+$mailManager = \Drupal::service('plugin.manager.mail');
+
+$result = $mailManager->mail(
+  'circuit_simulation',
+  'circuit_simulation_proposal_received',
+  $email_to,
+  \Drupal::languageManager()->getDefaultLanguage()->getId(),
+  $params,
+  $from,
+  TRUE
+);
+  
+
+if (!$result['result']) {
+  \Drupal::messenger()->addMessage(t('Mail sent successfully.'));
+}
+    \Drupal::messenger()->addMessage(t('We have received your eSim circuit simulation proposal. We will get back to you soon.'));
     $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
     // Send the redirect response
     $response->send();

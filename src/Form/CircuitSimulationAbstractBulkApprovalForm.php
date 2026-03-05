@@ -309,7 +309,7 @@ function _bulk_list_circuit_simulation_actions() {
             ];
             if (!drupal_mail('circuit_simulation', 'standard', $email_to, language_default(), $params, $from, TRUE)) {
               $msg = \Drupal::messenger()->addError('Error sending email message.');*/
-              $response = new RedirectResponse(Url::fromUri('internal:/circuit-simulation-project/manage-proposal/status/' . $form_state->getValue(['circuit_simulation_project']))->toString());
+              // $response = new RedirectResponse(Url::fromUri('internal:/circuit-simulation-project/manage-proposal/status/' . $form_state->getValue(['circuit_simulation_project']))->toString());
               $response->send();
             }//$form_state['values']['circuit_simulation_actions'] == 1
           else if ($form_state->getValue(['circuit_simulation_actions']) == 2) 

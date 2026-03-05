@@ -24,122 +24,262 @@ use Drupal\Core\Render\Markup;
  */
 class DefaultController extends ControllerBase {
 
-  public function circuit_simulation_proposal_pending() {
-    /* get pending proposals to be approved */
-    $pending_rows = [];
-    $query = \Drupal::database()->select('esim_circuit_simulation_proposal');
-    $query->fields('esim_circuit_simulation_proposal');
-    $query->condition('approval_status', 0);
-    $query->orderBy('id', 'DESC');
-    $pending_q = $query->execute();
-    while ($pending_data = $pending_q->fetchObject()) {
-      $approval_url = Link::fromTextAndUrl(
-  $this->t('Approve'),
-  Url::fromUri('internal:/circuit-simulation-project/manage-proposal/approve/' . $pending_data->id)
-)->toString();
-      $edit_url =  Link::fromTextAndUrl(
-  $this->t('Edit'),
-  Url::fromUri('internal:/circuit-simulation-project/manage-proposal/edit/' . $pending_data->id)
-)->toString();
-      $mainLink = t('@linkApprove | @linkReject', array('@linkApprove' => $approval_url, '@linkReject' => $edit_url));
-      $pending_rows[$pending_data->id] = [
-        date('d-m-Y', $pending_data->creation_date),
-        Link::fromTextAndUrl($pending_data->contributor_name, Url::fromRoute('entity.user.canonical', ['user' => $pending_data->uid])),
-        $pending_data->project_title,
-        $mainLink
-      ];
+//   public function circuit_simulation_proposal_pending() {
+//     /* get pending proposals to be approved */
+//     $pending_rows = [];
+//     $query = \Drupal::database()->select('esim_circuit_simulation_proposal');
+//     $query->fields('esim_circuit_simulation_proposal');
+//     $query->condition('approval_status', 0);
+//     $query->orderBy('id', 'DESC');
+//     $pending_q = $query->execute();
+//     while ($pending_data = $pending_q->fetchObject()) {
+//       $approval_url = Link::fromTextAndUrl(
+//   $this->t('Approve'),
+//   Url::fromUri('internal:/circuit-simulation-project/manage-proposal/approve/' . $pending_data->id)
+// )->toString();
+//       $edit_url =  Link::fromTextAndUrl(
+//   $this->t('Edit'),
+//   Url::fromUri('internal:/circuit-simulation-project/manage-proposal/edit/' . $pending_data->id)
+// )->toString();
+//       }
 
-    } //$pending_data = $pending_q->fetchObject()
-  /* check if there are any pending proposals */
-    /*if (!$pending_rows) {
-      $msg = \Drupal::messenger()->addStatus(t('There are no pending proposals.'));
-      return $msg;
-    } //!$pending_rows*/
-    $pending_header = [
-      'Date of Submission',
-      'Student Name',
-      'Title of the Project',
-      'Action',
+//       $mainLink = t('@linkApprove | @linkReject', array('@linkApprove' => $approval_url, '@linkReject' => $edit_url));
+//       $pending_rows[$pending_data->id] = [
+//         date('d-m-Y', $pending_data->creation_date),
+//         Link::fromTextAndUrl($pending_data->contributor_name, Url::fromRoute('entity.user.canonical', ['user' => $pending_data->uid])),
+//         $pending_data->project_title,
+//         $mainLink
+//       ];
+
+//     }
+//      //$pending_data = $pending_q->fetchObject()
+//   /* check if there are any pending proposals */
+//     // /*if (!$pending_rows) {
+//     //   $msg = \Drupal::messenger()->addStatus(t('There are no pending proposals.'));
+//     //   return $msg;
+//     // } //!$pending_rows*/
+//     $pending_header = [
+//       'Date of Submission',
+//       'Student Name',
+//       'Title of the Project',
+//       'Action',
+//     ];
+//     $output =  [
+//       '#type' => 'table',
+//       '#header' => $pending_header,
+//       '#rows' => $pending_rows,
+//       '#empty' => 'no rows found',
+//     ];
+//     return $output;
+//   }
+
+public function circuit_simulation_proposal_pending() {
+
+  $database = \Drupal::database();
+
+  $query = $database->select('esim_circuit_simulation_proposal', 'e');
+  $query->fields('e');
+  $query->condition('approval_status', 0);
+  $query->orderBy('id', 'DESC');
+
+  $result = $query->execute();
+
+  $rows = [];
+
+  foreach ($result as $record) {
+
+    // Student profile link
+    $user_url = Url::fromRoute('entity.user.canonical', ['user' => $record->uid]);
+    $student_link = Link::fromTextAndUrl(
+      $record->name_title . ' ' . $record->contributor_name,
+      $user_url
+    )->toString();
+
+    // Approve link
+    $approve_url = Url::fromUri('internal:/circuit-simulation-project/manage-proposal/approve/' . $record->id);
+    $approve_link = Link::fromTextAndUrl('Approve', $approve_url)->toString();
+
+    // Edit link
+    $edit_url = Url::fromUri('internal:/circuit-simulation-project/manage-proposal/edit/' . $record->id);
+    $edit_link = Link::fromTextAndUrl('Edit', $edit_url)->toString();
+
+    $rows[] = [
+      date('d-m-Y', $record->creation_date),
+      [
+        'data' => [
+          '#markup' => $student_link,
+        ],
+      ],
+      $record->project_title,
+      [
+        'data' => [
+          '#markup' => $approve_link . ' | ' . $edit_link,
+        ],
+      ],
     ];
-    $output =  [
-      '#type' => 'table',
-      '#header' => $pending_header,
-      '#rows' => $pending_rows,
-      '#empty' => 'no rows found',
-    ];
-    return $output;
   }
 
-  public function circuit_simulation_proposal_all() {
-    /* get pending proposals to be approved */
-    $proposal_rows = [];
-    $query = \Drupal::database()->select('esim_circuit_simulation_proposal');
-    $query->fields('esim_circuit_simulation_proposal');
-    $query->orderBy('id', 'DESC');
-    $proposal_q = $query->execute();
-    while ($proposal_data = $proposal_q->fetchObject()) {
-      $approval_status = '';
-      switch ($proposal_data->approval_status) {
-        case 0:
-          $approval_status = 'Pending';
-          break;
-        case 1:
-          $approval_status = 'Approved';
-          break;
-        case 2:
-          $approval_status = 'Dis-approved';
-          break;
-        case 3:
-          $approval_status = 'Completed';
-          break;
-        default:
-          $approval_status = 'Unknown';
-          break;
-      } //$proposal_data->approval_status
-      if ($proposal_data->actual_completion_date == 0) {
-        $actual_completion_date = "Not Completed";
-      } //$proposal_data->actual_completion_date == 0
-      else {
-        $actual_completion_date = date('d-m-Y', $proposal_data->actual_completion_date);
-      }
-       $approval_url = Link::fromTextAndUrl(
-  $this->t('Status'),
-  Url::fromUri('internal:/circuit-simulation-project/manage-proposal/status/' . $proposal_data->id)
-)->toString();
-      //$approval_url = Link::fromTextAndUrl('Status', Url::fromRoute('om_flowsheet.proposal_status_form',['id'=>$proposal_data->id]))->toString();
-      $edit_url =  Link::fromTextAndUrl('Edit', Url::fromUri('internal:/circuit-simulation-project/manage-proposal/edit/' . $proposal_data->id))->toString();
-      $mainLink = t('@linkApprove | @linkReject', array('@linkApprove' => $approval_url, '@linkReject' => $edit_url));
-      $proposal_rows[$proposal_data->id] = [
-        $actual_completion_date,
-        Link::fromTextAndUrl($proposal_data->contributor_name, Url::fromRoute('entity.user.canonical', ['user' => $proposal_data->uid])),
-        $proposal_data->project_title,
-        $actual_completion_date,
-        $approval_status,
-        $mainLink
-      ];
-    } //$proposal_data = $proposal_q->fetchObject()
-	/* check if there are any pending proposals */
-    // if (!$proposal_rows) {
-    //   \Drupal::messenger()->addStatus(t('There are no proposals.'));
-    //   return '';
-    // } //!$proposal_rows
-    $proposal_header = [
+  if (empty($rows)) {
+    \Drupal::messenger()->addStatus('There are no pending proposals.');
+    return [];
+  }
+
+  return [
+    '#type' => 'table',
+    '#header' => [
+      'Date of Submission',
+      'Student Name',
+      'Title of the Circuit Simulation Project',
+      'Action',
+    ],
+    '#rows' => $rows,
+    '#empty' => $this->t('There are no pending proposals.'),
+  ];
+}
+//   public function circuit_simulation_proposal_all() {
+//     /* get pending proposals to be approved */
+//     $proposal_rows = [];
+//     $query = \Drupal::database()->select('esim_circuit_simulation_proposal');
+//     $query->fields('esim_circuit_simulation_proposal');
+//     $query->orderBy('id', 'DESC');
+//     $proposal_q = $query->execute();
+//     while ($proposal_data = $proposal_q->fetchObject()) {
+//       $approval_status = '';
+//       switch ($proposal_data->approval_status) {
+//         case 0:
+//           $approval_status = 'Pending';
+//           break;
+//         case 1:
+//           $approval_status = 'Approved';
+//           break;
+//         case 2:
+//           $approval_status = 'Dis-approved';
+//           break;
+//         case 3:
+//           $approval_status = 'Completed';
+//           break;
+//         default:
+//           $approval_status = 'Unknown';
+//           break;
+//       } //$proposal_data->approval_status
+//       if ($proposal_data->actual_completion_date == 0) {
+//         $actual_completion_date = "Not Completed";
+//       } //$proposal_data->actual_completion_date == 0
+//       else {
+//         $actual_completion_date = date('d-m-Y', $proposal_data->actual_completion_date);
+//       }
+//        $approval_url = Link::fromTextAndUrl(
+//   $this->t('Status'),
+//   Url::fromUri('internal:/circuit-simulation-project/manage-proposal/status/' . $proposal_data->id)
+// )->toString();
+      
+//       // $approval_url = Link::fromTextAndUrl('Status', Url::fromRoute('om_flowsheet.proposal_status_form',['id'=>$proposal_data->id]))->toString();
+//       $edit_url =  Link::fromTextAndUrl('Edit', Url::fromUri('internal:/circuit-simulation-project/manage-proposal/edit/' . $proposal_data->id))->toString();
+//       $mainLink = t('@linkApprove | @linkReject', array('@linkApprove' => $approval_url, '@linkReject' => $edit_url));
+//       $proposal_rows[$proposal_data->id] = [
+//         $actual_completion_date,
+//         Link::fromTextAndUrl($proposal_data->contributor_name, Url::fromRoute('entity.user.canonical', ['user' => $proposal_data->uid])),
+//         $proposal_data->project_title,
+//         $actual_completion_date,
+//         $approval_status,
+//         $mainLink
+//       ];
+//     } //$proposal_data = $proposal_q->fetchObject()
+// 	/* check if there are any pending proposals */
+//     // if (!$proposal_rows) {
+//     //   \Drupal::messenger()->addStatus(t('There are no proposals.'));
+//     //   return '';
+//     // } //!$proposal_rows
+//     $proposal_header = [
+//       'Date of Submission',
+//       'Student Name',
+//       'Title of the circuit-simulation project',
+//       'Date of Completion',
+//       'Status',
+//       'Action',
+//     ];
+//     $output =  [
+//       '#type' => 'table',
+//       '#header' => $proposal_header,
+//       '#rows' => $proposal_rows,
+//       '#empty' => 'no rows found',
+//     ];
+
+//     return $output;
+//   }
+public function circuit_simulation_proposal_all() {
+  $proposal_rows = [];
+
+  $query = \Drupal::database()->select('esim_circuit_simulation_proposal', 'e');
+  $query->fields('e');
+  $query->orderBy('id', 'DESC');
+  $proposal_q = $query->execute();
+
+  while ($proposal_data = $proposal_q->fetchObject()) {
+
+    // Approval status
+    $approval_status = match ((int) $proposal_data->approval_status) {
+      0 => 'Pending',
+      1 => 'Approved',
+      2 => 'Dis-approved',
+      3 => 'Completed',
+      default => 'Unknown',
+    };
+
+    // Date of submission
+    $submission_date = $proposal_data->creation_date
+      ? date('d-m-Y', $proposal_data->creation_date)
+      : '—';
+
+    // Date of completion
+    $completion_date = $proposal_data->actual_completion_date
+      ? date('d-m-Y', $proposal_data->actual_completion_date)
+      : 'Not Completed';
+
+    // Action links
+    $approval_url = Link::fromTextAndUrl(
+      $this->t('Status'),
+      Url::fromUri('internal:/circuit-simulation-project/manage-proposal/status/' . $proposal_data->id)
+    )->toString();
+
+    $edit_url = Link::fromTextAndUrl(
+      $this->t('Edit'),
+      Url::fromUri('internal:/circuit-simulation-project/manage-proposal/edit/' . $proposal_data->id)
+    )->toString();
+
+    $action_links = $this->t('@approve | @edit', [
+      '@approve' => $approval_url,
+      '@edit' => $edit_url,
+    ]);
+
+    // Table row
+    $proposal_rows[$proposal_data->id] = [
+      $submission_date,
+      Link::fromTextAndUrl(
+        $proposal_data->contributor_name,
+        Url::fromRoute('entity.user.canonical', ['user' => $proposal_data->uid])
+      ),
+      $proposal_data->project_title,
+      $completion_date,
+      $approval_status,
+      $action_links,
+    ];
+  }
+
+  return [
+    '#type' => 'table',
+    '#header' => [
       'Date of Submission',
       'Student Name',
       'Title of the circuit-simulation project',
       'Date of Completion',
       'Status',
       'Action',
-    ];
-    $output =  [
-      '#type' => 'table',
-      '#header' => $proposal_header,
-      '#rows' => $proposal_rows,
-      '#empty' => 'no rows found',
-    ];
-
-    return $output;
-  }
+    ],
+    '#rows' => $proposal_rows,
+    '#empty' => 'No proposals found',
+  ];
+}
 
   public function circuit_simulation_approved_tab() {
     $markup = "";
@@ -387,104 +527,224 @@ $url = Link::fromTextAndUrl(
     } //$zip_file_count > 0
     else {
       \Drupal::messenger()->addError("There are no circuit simulation project in this proposal to download");
-      return new RedirectResponse('/circuit-simulation-project/full-download/project/' . $proposal_id);
+      // return new RedirectResponse('/circuit-simulation-project/full-download/project/' . $proposal_id);
       //drupal_goto('circuit-simulation-project/full-download/project');
     }
   }
 
-  public function circuit_simulation_download_proposals() {
-    $service = \Drupal::service('circuit_simulation_global');
-    $root_path = $service->circuit_simulation_path();
+//   public function circuit_simulation_download_proposals() {
+//     $service = \Drupal::service('circuit_simulation_global');
+//     $root_path = $service->circuit_simulation_path();
 
-    $result = \Drupal::database()->query("SELECT e.contributor_name as contirbutor_name, u.mail as email_id, e.project_title as title, e.contact_no as contact, e.university as university, from_unixtime(creation_date,'%d-%m-%Y') as creation, from_unixtime(approval_date,'%d-%m-%Y') as approval, from_unixtime(actual_completion_date,'%d-%m-%Y') as year, e.approval_status as status FROM esim_circuit_simulation_proposal as e JOIN users as u ON e.uid = u.uid ORDER BY actual_completion_date DESC");
+//     // $result = \Drupal::database()->query("SELECT e.contributor_name as contirbutor_name, u.mail as email_id, e.project_title as title, e.contact_no as contact, e.university as university, from_unixtime(creation_date,'%d-%m-%Y') as creation, from_unixtime(approval_date,'%d-%m-%Y') as approval, from_unixtime(actual_completion_date,'%d-%m-%Y') as year, e.approval_status as status FROM esim_circuit_simulation_proposal as e JOIN users as u ON e.uid = u.uid ORDER BY actual_completion_date DESC");
 
-    //var_dump($result->rowCount());die();
-    //$all_proposals_q = $result->execute();
-    $participants_proposal_id_file = $root_path . "participants-proposals.csv";
-    $fp = fopen($participants_proposal_id_file, "w");
-    /* making the first row */
-    $items = [
-      'Contirbutor Name',
-      'Email ID',
-      'Circuit Simulation Title',
-      'University',
-      'Contact',
-      'Date of Creation',
-      'Date of Approval',
-      'Date of Completion',
-      'Status of the proposal',
-    ];
-    fputcsv($fp, $items);
-    while ($row = $result->fetchObject()) {
-      $status = '';
-      switch ($row->status) {
-        case 0:
-          $status = 'Pending';
-          break;
-        case 1:
-          $status = 'Approved';
-          break;
-        case 2:
-          $status = 'Dis-approved';
-          break;
-        case 3:
-          $status = 'Completed';
-          break;
-        default:
-          $status = 'Unknown';
-          break;
-      } //$row->status
-      if ($row->year == 0) {
-        $year = "Not Completed";
-      } //$row->year == 0
-      else {
-        $year = date('d-m-Y', $row->year);
-      }
+//     $result = \Drupal::database()->query("
+//   SELECT
+//     e.contributor_name AS contributor_name,
+//     ufd.mail AS email_id,
+//     e.project_title AS title,
+//     e.contact_no AS contact,
+//     e.university AS university,
+//     FROM_UNIXTIME(e.creation_date, '%d-%m-%Y') AS creation,
+//     FROM_UNIXTIME(e.approval_date, '%d-%m-%Y') AS approval,
+//     FROM_UNIXTIME(e.actual_completion_date, '%d-%m-%Y') AS year,
+//     e.approval_status AS status
+//   FROM esim_circuit_simulation_proposal e
+//   JOIN users_field_data ufd ON e.uid = ufd.uid
+//   ORDER BY e.actual_completion_date DESC
+// ");
 
-      $items = [
-        $row->contirbutor_name,
-        $row->email_id,
-        $row->title,
-        $row->university,
-        $row->contact,
-        $row->creation,
-        $row->approval,
-        $row->year,
-        $status,
-      ];
-      fputcsv($fp, $items);
-    }
-    fclose($fp);
-    if ($participants_proposal_id_file) {
-      ob_clean();
-      header("Pragma: public");
-      header("Expires: 0");
-      header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-      header("Cache-Control: public");
-      header("Content-Description: File Transfer");
-      header('Content-Type: application/csv');
-      header('Content-disposition: attachment; filename=participants-proposals.csv');
-      header('Content-Length:' . filesize($participants_proposal_id_file));
-      header("Content-Transfer-Encoding: binary");
-      header('Expires: 0');
-      header('Pragma: no-cache');
-      readfile($participants_proposal_id_file);
-      /*ob_end_flush();
-            ob_clean();
-            flush();*/
-    }
+//     //var_dump($result->rowCount());die();
+//     //$all_proposals_q = $result->execute();
+//     $participants_proposal_id_file = $root_path . "participants-proposals.csv";
+//     $fp = fopen($participants_proposal_id_file, "w");
+//     /* making the first row */
+//     $items = [
+//       'Contirbutor Name',
+//       'Email ID',
+//       'Circuit Simulation Title',
+//       'University',
+//       'Contact',
+//       'Date of Creation',
+//       'Date of Approval',
+//       'Date of Completion',
+//       'Status of the proposal',
+//     ];
+//     fputcsv($fp, $items);
+//     while ($row = $result->fetchObject()) {
+//       $status = '';
+//       switch ($row->status) {
+//         case 0:
+//           $status = 'Pending';
+//           break;
+//         case 1:
+//           $status = 'Approved';
+//           break;
+//         case 2:
+//           $status = 'Dis-approved';
+//           break;
+//         case 3:
+//           $status = 'Completed';
+//           break;
+//         default:
+//           $status = 'Unknown';
+//           break;
+//       } //$row->status
+//       if ($row->year == 0) {
+//         $year = "Not Completed";
+//       } //$row->year == 0
+//       else {
+//         $year = date('d-m-Y', $row->year);
+//       }
+
+//       $items = [
+//         $row->contirbutor_name,
+//         $row->email_id,
+//         $row->title,
+//         $row->university,
+//         $row->contact,
+//         $row->creation,
+//         $row->approval,
+//         $row->year,
+//         $status,
+//       ];
+//       fputcsv($fp, $items);
+//     }
+//     fclose($fp);
+//     if ($participants_proposal_id_file) {
+//       ob_clean();
+//       header("Pragma: public");
+//       header("Expires: 0");
+//       header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+//       header("Cache-Control: public");
+//       header("Content-Description: File Transfer");
+//       header('Content-Type: application/csv');
+//       header('Content-disposition: attachment; filename=participants-proposals.csv');
+//       header('Content-Length:' . filesize($participants_proposal_id_file));
+//       header("Content-Transfer-Encoding: binary");
+//       header('Expires: 0');
+//       header('Pragma: no-cache');
+//       readfile($participants_proposal_id_file);
+//       /*ob_end_flush();
+//             ob_clean();
+//             flush();*/
+//     }
+//   }
+
+
+public function circuit_simulation_download_proposals() {
+  $database = \Drupal::database();
+  $file_system = \Drupal::service('file_system');
+
+  // Always write to public://
+  $directory = 'public://exports';
+  $file_system->prepareDirectory(
+    $directory,
+    FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS
+  );
+
+  $file_path = $directory . '/participants-proposals.csv';
+
+  $fp = fopen($file_path, 'w');
+  if ($fp === FALSE) {
+    throw new \RuntimeException('Unable to create CSV file.');
   }
 
-  public function esim_circuit_simulation_download_completed_proposals() {
-    $output = "";
-    // @FIXME
-    // l() expects a Url object, created from a route name or external URI.
-    // $output .= "Click ".l("here","/circuit-simulation-project/download-proposals"). " to download the Proposals of the participants" ."<h4>";
+  // CSV header
+  fputcsv($fp, [
+    'Contributor Name',
+    'Email ID',
+    'Circuit Simulation Title',
+    'University',
+    'Contact',
+    'Date of Creation',
+    'Date of Approval',
+    'Date of Completion',
+    'Status of the proposal',
+  ]);
 
+  $result = $database->query("
+    SELECT
+      e.contributor_name,
+      ufd.mail AS email_id,
+      e.project_title AS title,
+      e.contact_no,
+      e.university,
+      FROM_UNIXTIME(e.creation_date, '%d-%m-%Y') AS creation,
+      FROM_UNIXTIME(e.approval_date, '%d-%m-%Y') AS approval,
+      e.actual_completion_date,
+      e.approval_status
+    FROM esim_circuit_simulation_proposal e
+    JOIN users_field_data ufd ON e.uid = ufd.uid
+    ORDER BY e.actual_completion_date DESC
+  ");
 
-    return $output;
+  while ($row = $result->fetchObject()) {
+    $status = match ((int) $row->approval_status) {
+      0 => 'Pending',
+      1 => 'Approved',
+      2 => 'Dis-approved',
+      3 => 'Completed',
+      default => 'Unknown',
+    };
 
+    $completion_date = $row->actual_completion_date
+      ? date('d-m-Y', $row->actual_completion_date)
+      : 'Not Completed';
+
+    fputcsv($fp, [
+      $row->contributor_name,
+      $row->email_id,
+      $row->title,
+      $row->university,
+      $row->contact_no,
+      $row->creation,
+      $row->approval,
+      $completion_date,
+      $status,
+    ]);
   }
+
+  fclose($fp);
+
+  // Stream file to browser (Drupal 10 compatible)
+  $response = new Response(file_get_contents($file_path));
+  $response->headers->set('Content-Type', 'text/csv');
+  $response->headers->set(
+    'Content-Disposition',
+    'attachment; filename="participants-proposals.csv"'
+  );
+
+  return $response;
+}
+
+  // public function esim_circuit_simulation_download_completed_proposals() {
+  //   $output = "";
+  //   // @FIXME
+  //   // l() expects a Url object, created from a route name or external URI.
+  //   $output .= "Click ".l("here","/circuit-simulation-project/download-proposals"). " to download the Proposals of the participants" ."<h4>";
+
+
+  //   return $output;
+
+  // }
+
+
+public function esim_circuit_simulation_download_completed_proposals() {
+  $link = Link::fromTextAndUrl(
+    $this->t('here'),
+    Url::fromUri('internal:/circuit-simulation-project/download-proposals')
+  )->toString();
+
+  return [
+    '#markup' => $this->t(
+      'Click @link to download the proposals of the participants <h4></h4>',
+      ['@link' => $link]
+    ),
+  ];
+}
+
+
 
   public function circuit_simulation_completed_proposals_all() {
     $output = "";

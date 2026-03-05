@@ -1,5 +1,5 @@
 circuit_simulation.all_completed_circuit_simulations:
-  path: /completed-circuits/{activity_name}
+  path: /completed-circuits/{activity_name?}
   defaults:
     _title: 'Completed Circuits'
     _form: \Drupal\circuit_simulation\Form\AllCompletedCircuitSimulations
@@ -19,6 +19,8 @@ circuit_simulation.proposal_pending:
     _controller: '\Drupal\circuit_simulation\Controller\DefaultController::circuit_simulation_proposal_pending'
   requirements:
     _permission: 'esim circuit simulation manage proposal'
+  options:
+    no_cache: TRUE  
 circuit_simulation.proposal_all:
   path: /circuit-simulation-project/manage-proposal/all
   defaults:
@@ -26,6 +28,8 @@ circuit_simulation.proposal_all:
     _controller: '\Drupal\circuit_simulation\Controller\DefaultController::circuit_simulation_proposal_all'
   requirements:
     _permission: 'esim circuit simulation manage proposal'
+  options:
+    no_cache: TRUE  
 circuit_simulation.approved_tab:
   path: /circuit-simulation-project/manage-proposal/approved-proposals
   defaults:
@@ -33,6 +37,8 @@ circuit_simulation.approved_tab:
     _controller: '\Drupal\circuit_simulation\Controller\DefaultController::circuit_simulation_approved_tab'
   requirements:
     _permission: 'esim circuit simulation manage proposal'
+  options:
+    no_cache: TRUE  
 circuit_simulation.uploaded_tab:
   path: /circuit-simulation-project/manage-proposal/uploaded-proposals
   defaults:
@@ -40,6 +46,8 @@ circuit_simulation.uploaded_tab:
     _controller: '\Drupal\circuit_simulation\Controller\DefaultController::circuit_simulation_uploaded_tab'
   requirements:
     _permission: 'esim circuit simulation manage proposal'
+  options:
+    no_cache: TRUE  
 circuit_simulation.completed_tab_form:
   path: /circuit-simulation-project/manage-proposal/completed-proposals
   defaults:
@@ -48,21 +56,21 @@ circuit_simulation.completed_tab_form:
   requirements:
     _permission: 'esim circuit simulation manage proposal'
 circuit_simulation.proposal_approval_form:
-  path: /circuit-simulation-project/manage-proposal/approve/{proposal_id}
+  path: /circuit-simulation-project/manage-proposal/approve/{proposal_id?}
   defaults:
     _title: 'Approve Proposal'
     _form: \Drupal\circuit_simulation\Form\CircuitSimulationProposalApprovalForm
   requirements:
     _permission: 'esim circuit simulation manage proposal'
 circuit_simulation.proposal_edit_form:
-  path: /circuit-simulation-project/manage-proposal/edit/{proposal_id}
+  path: /circuit-simulation-project/manage-proposal/edit/{proposal_id?}
   defaults:
     _title: 'Edit Proposal'
     _form: \Drupal\circuit_simulation\Form\CircuitSimulationProposalEditForm
   requirements:
     _permission: 'esim circuit simulation manage proposal'
 circuit_simulation.proposal_status_form:
-  path: /circuit-simulation-project/manage-proposal/status/{proposal_id}
+  path: /circuit-simulation-project/manage-proposal/status/{proposal_id?}
   defaults:
     _title: 'Proposal Status'
     _form: \Drupal\circuit_simulation\Form\CircuitSimulationProposalStatusForm
@@ -82,6 +90,8 @@ circuit_simulation.abstract:
     _controller: '\Drupal\circuit_simulation\Controller\DefaultController::circuit_simulation_abstract'
   requirements:
     _permission: 'esim circuit simulation upload abstract'
+  options:
+    no_cache: TRUE  
 circuit_simulation.upload_abstract_code_form:
   path: /circuit-simulation-project/abstract-code/upload
   defaults:
@@ -90,12 +100,14 @@ circuit_simulation.upload_abstract_code_form:
   requirements:
     _permission: 'esim circuit simulation upload abstract'
 circuit_simulation.download_full_project:
-  path: /circuit-simulation-project/full-download/project/{proposal_id}
+  path: /circuit-simulation-project/full-download/project/{proposal_id?}
   defaults:
     _title: 'Code Download'
     _controller: '\Drupal\circuit_simulation\Controller\DefaultController::circuit_simulation_download_full_project'
   requirements:
     _permission: 'esim circuit simulation download code'
+  options:
+    no_cache: TRUE  
 circuit_simulation.download_proposals:
   path: /circuit-simulation-project/download-proposals
   defaults:
@@ -103,6 +115,8 @@ circuit_simulation.download_proposals:
     _controller: '\Drupal\circuit_simulation\Controller\DefaultController::circuit_simulation_download_proposals'
   requirements:
     _permission: 'esim circuit simulation download proposals'
+  options:
+    no_cache: TRUE  
 circuit_simulation.esim_circuit_simulation_download_completed_proposals:
   path: /circuit-simulation-project/download-completed-proposals
   defaults:
@@ -110,6 +124,8 @@ circuit_simulation.esim_circuit_simulation_download_completed_proposals:
     _controller: '\Drupal\circuit_simulation\Controller\DefaultController::esim_circuit_simulation_download_completed_proposals'
   requirements:
     _permission: 'esim circuit simulation download proposals'
+  options:
+    no_cache: TRUE  
 circuit_simulation.completed_proposals_all:
   path: /circuit-simulation-project/completed-circuits
   defaults:
@@ -117,6 +133,8 @@ circuit_simulation.completed_proposals_all:
     _controller: '\Drupal\circuit_simulation\Controller\DefaultController::circuit_simulation_completed_proposals_all'
   requirements:
     _permission: 'esim circuit simulation download code'
+  options:
+    no_cache: TRUE  
 circuit_simulation.completed_pspice_to_kicad:
   path: /circuit-simulation-project/completed-circuits/pspice-to-kicad
   defaults:
@@ -124,6 +142,8 @@ circuit_simulation.completed_pspice_to_kicad:
     _controller: '\Drupal\circuit_simulation\Controller\DefaultController::circuit_simulation_completed_pspice_to_kicad'
   requirements:
     _permission: 'esim circuit simulation download code'
+  options:
+    no_cache: TRUE 
 circuit_simulation.completed_ltspice_to_kicad:
   path: /circuit-simulation-project/completed-circuits/ltspice-to-kicad
   defaults:
@@ -131,6 +151,8 @@ circuit_simulation.completed_ltspice_to_kicad:
     _controller: '\Drupal\circuit_simulation\Controller\DefaultController::circuit_simulation_completed_ltspice_to_kicad'
   requirements:
     _permission: 'esim circuit simulation download code'
+  options:
+    no_cache: TRUE 
 circuit_simulation.progress_all:
   path: /circuit-simulation-project/circuit-simulation-progress
   defaults:
@@ -138,27 +160,33 @@ circuit_simulation.progress_all:
     _controller: '\Drupal\circuit_simulation\Controller\DefaultController::circuit_simulation_progress_all'
   requirements:
     _permission: 'esim circuit simulation download code'
+  options:
+    no_cache: TRUE 
 circuit_simulation.run_form:
-  path: /circuit-simulation-project/esim-circuit-simulation-run/{proposal_id}
+  path: /circuit-simulation-project/esim-circuit-simulation-run/{proposal_id?}
   defaults:
     _title: 'Download Codes'
     _form: \Drupal\circuit_simulation\Form\CircuitSimulationRunForm
   requirements:
     _permission: 'esim circuit simulation download code'
 circuit_simulation.download_upload_file:
-  path: /circuit-simulation-project/download/resource-file/{proposal_id}
+  path: /circuit-simulation-project/download/resource-file/{proposal_id?}
   defaults:
     _title: 'Download resource file from proposal'
     _controller: '\Drupal\circuit_simulation\Controller\DefaultController::circuit_simulation_download_upload_file'
   requirements:
     _permission: 'download code'
+  options:
+    no_cache: TRUE 
 circuit_simulation.esim_circuit_simulation_project_files:
-  path: /circuit-simulation-project/download/project-file/{proposal_id}
+  path: /circuit-simulation-project/download/project-file/{proposal_id?}
   defaults:
     _title: 'Download Project file'
     _controller: '\Drupal\circuit_simulation\Controller\DefaultController::esim_circuit_simulation_project_files'
   requirements:
     _permission: 'download code'
+  options:
+    no_cache: TRUE 
 circuit_simulation.settings_form:
   path: '/admin/settings/esim-circuit-simulation'
   defaults:
@@ -173,6 +201,8 @@ circuit_simulation._list_circuit_simulation_certificates:
     _controller: '\Drupal\circuit_simulation\Controller\DefaultController::_list_circuit_simulation_certificates'
   requirements:
     _permission: 'list circuit simulation certificates'
+  options:
+    no_cache: TRUE 
 circuit_simulation.generate_pdf:
   path: /circuit-simulation-project/certificates-custom/pdf
   defaults:
@@ -187,6 +217,8 @@ circuit_simulation._list_circuit_simulation_custom_certificates:
     _controller: '\Drupal\circuit_simulation\Controller\DefaultController::_list_circuit_simulation_custom_certificates'
   requirements:
     _permission: 'list circuit simulation custom certificates'
+  options:
+    no_cache: TRUE 
 circuit_simulation.verify_certificates_verify_certificates:
   path: /circuit-simulation-project/certificates/verify
   defaults:
@@ -195,3 +227,5 @@ circuit_simulation.verify_certificates_verify_certificates:
     _controller: '\Drupal\circuit_simulation\Controller\DefaultController::verify_certificates'
   requirements:
     _permission: 'verify certificates'
+  options:
+    no_cache: TRUE 

@@ -155,7 +155,7 @@ class CircuitSimulationProposalStatusForm extends FormBase {
     if ($proposal_data->approval_status == 0) {
 $form['approve'] = [
 			'#type' => 'item',
-			'#markup' => Link::fromTextAndUrl('Click here', Url::fromUri('internal:/circuit-simulation-project/manage-proposal/approve/' . $proposal_id))->toString(),
+			// '#markup' => Link::fromTextAndUrl('Click here', Url::fromUri('internal:/circuit-simulation-project/manage-proposal/approve/' . $proposal_id))->toString(),
 			'#title' => t('Approve')
 		];
 
@@ -228,31 +228,55 @@ $form['approve'] = [
         return;
       } //!$result
 		/* sending email */
-      $user_data = \Drupal::entityTypeManager()->getStorage('user')->load($proposal_data->uid);
-      // $email_to = $user_data->getEmail();
-      // $from = \Drupal::config('circuit_simulation.settings')->get('circuit_simulation_from_email');
-      // $bcc = $user->mail . ', ' . \Drupal::config('circuit_simulation.settings')->get('circuit_simulation_emails');
-      // $cc = \Drupal::config('circuit_simulation.settings')->get('circuit_simulation_cc_emails');
-      // $params['circuit_simulation_proposal_completed']['proposal_id'] = $proposal_id;
-      // $params['circuit_simulation_proposal_completed']['user_id'] = $proposal_data->uid;
-      // $params['circuit_simulation_proposal_completed']['headers'] = [
-      //   'From' => $from,
-      //   'MIME-Version' => '1.0',
-      //   'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
-      //   'Content-Transfer-Encoding' => '8Bit',
-      //   'X-Mailer' => 'Drupal',
-      //   'Cc' => $cc,
-      //   'Bcc' => $bcc,
-      // ];
-      // if (!drupal_mail('circuit_simulation', 'circuit_simulation_proposal_completed', $email_to, language_default(), $params, $from, TRUE)) {
-      //   \Drupal::messenger()->addError('Error sending email message.');
-     // }
-      \Drupal::messenger()->addStatus('Congratulations! eSim circuit simulation proposal has been marked as completed. User has been notified of the completion.');
+$user_data = \Drupal::entityTypeManager()
+  ->getStorage('user')
+  ->load($proposal_data->uid);
+
+if ($user_data && $user_data->getEmail()) {
+
+  $email_to = $user_data->getEmail();
+
+  $config = \Drupal::config('circuit_simulation.settings');
+
+  $from = $config->get('circuit_simulation_from_email');
+  $bcc  = $user->getEmail() . ', ' . $config->get('circuit_simulation_emails');
+  $cc   = $config->get('circuit_simulation_cc_emails');
+
+  $params['circuit_simulation_proposal_completed']['proposal_id'] = $proposal_id;
+  $params['circuit_simulation_proposal_completed']['user_id'] = $proposal_data->uid;
+
+  $params['circuit_simulation_proposal_completed']['headers'] = [
+    'From' => $from,
+    'MIME-Version' => '1.0',
+    'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
+    'Content-Transfer-Encoding' => '8Bit',
+    'X-Mailer' => 'Drupal',
+    'Cc' => $cc,
+    'Bcc' => $bcc,
+  ];
+
+  $mailManager = \Drupal::service('plugin.manager.mail');
+
+  $result = $mailManager->mail(
+    'circuit_simulation',
+    'circuit_simulation_proposal_completed',
+    $email_to,
+    \Drupal::languageManager()->getDefaultLanguage()->getId(),
+    $params,
+    $from,
+    TRUE
+  );
+
+  if (!$result['result']) {
+    \Drupal::messenger()->addMessage(t('Mail sent successfully.'));
+  }
+     \Drupal::messenger()->addStatus('Congratulations! eSim circuit simulation proposal has been marked as completed. User has been notified of the completion.');
     }
     $response = new RedirectResponse(Url::fromRoute('circuit_simulation.proposal_pending')->toString());
          $response->send();
     return;
 
+  }
   }
 
 }

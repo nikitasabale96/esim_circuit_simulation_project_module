@@ -138,27 +138,55 @@ class CircuitSimulationProposalApprovalForm extends FormBase {
       '#markup' => $proposal_data->description,
       '#title' => t('Description of the Circuit Simulation Project'),
     ];
-    if (($proposal_data->samplefilepath != "") && ($proposal_data->samplefilepath != 'NULL')) {
-      $str = substr($proposal_data->samplefilepath, strrpos($proposal_data->samplefilepath, '/'));
-      $resource_file = ltrim($str, '/');
-      $resource_file_link = Link::fromTextAndUrl(
-  $resource_file,
-  Url::fromUri('internal:/circuit-simulation-project/download/resource-file/' . $proposal_id)
-)->toString();
-      $form['samplefilepath'] = array(
-      			'#type' => 'item',
-      			'#title' => t('Resource file '),
-      			'#markup' => $resource_file_link
-      		);
+//     if (($proposal_data->samplefilepath != "") && ($proposal_data->samplefilepath != 'NULL')) {
+//       $str = substr($proposal_data->samplefilepath, strrpos($proposal_data->samplefilepath, '/'));
+//       $resource_file = ltrim($str, '/');
+//       $resource_file_link = Link::fromTextAndUrl(
+//   $resource_file,
+//   Url::fromUri('internal:/circuit-simulation-project/download/resource-file/' . $proposal_id)
+// )->toString();
+      
+//       $form['samplefilepath'] = array(
+//       			'#type' => 'item',
+//       			'#title' => t('Resource file '),
+//       			'#markup' => $resource_file_link
+//       		);
 
-    } //$proposal_data->user_defined_compound_filepath != ""
-    else {
-      $form['samplefilepath'] = [
-        '#type' => 'item',
-        '#title' => t('Resource file '),
-        '#markup' => "Not uploaded<br><br>",
-      ];
-    }
+//     } //$proposal_data->user_defined_compound_filepath != ""
+//     else {
+//       $form['samplefilepath'] = [
+//         '#type' => 'item',
+//         '#title' => t('Resource file '),
+//         '#markup' => "Not uploaded<br><br>",
+//       ];
+//     }
+if (!empty($proposal_data->samplefilepath) && $proposal_data->samplefilepath !== 'NULL') {
+
+  $str = substr(
+    $proposal_data->samplefilepath,
+    strrpos($proposal_data->samplefilepath, '/')
+  );
+
+  $resource_file = ltrim($str, '/');
+
+  $url = Url::fromUri('internal:/circuit-simulation-project/download/resource-file/' . $proposal_id);
+
+  $link = Link::fromTextAndUrl($resource_file, $url)->toRenderable();
+
+  $form['samplefilepath'] = [
+    '#type' => 'item',
+    '#title' => $this->t('Resource file'),
+    'link' => $link,
+  ];
+}
+else {
+
+  $form['samplefilepath'] = [
+    '#type' => 'item',
+    '#title' => $this->t('Resource file'),
+    '#markup' => $this->t('Not uploaded') . '<br><br>',
+  ];
+}
     $form['approval'] = [
       '#type' => 'radios',
       '#title' => t('eSim circuit-simulation proposal'),
@@ -241,26 +269,53 @@ class CircuitSimulationProposalApprovalForm extends FormBase {
       ];
       \Drupal::database()->query($query, $args);
       /* sending email */
-      // $user_data = \Drupal::entityTypeManager()->getStorage('user')->load($proposal_data->uid);
-      // $email_to = $user_data->getEmail();
-      // $from = \Drupal::config('circuit_simulation.settings')->get('circuit_simulation_from_email');
-      // $bcc = $user->getEmail() . ', ' . \Drupal::config('circuit_simulation.settings')->get('circuit_simulation_emails');
-      // $cc = \Drupal::config('circuit_simulation.settings')->get('circuit_simulation_cc_emails');
-      // $params['circuit_simulation_proposal_approved']['proposal_id'] = $proposal_id;
-      // $params['circuit_simulation_proposal_approved']['user_id'] = $proposal_data->uid;
-      // $params['circuit_simulation_proposal_approved']['headers'] = [
-      //   'From' => $from,
-      //   'MIME-Version' => '1.0',
-      //   'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
-      //   'Content-Transfer-Encoding' => '8Bit',
-      //   'X-Mailer' => 'Drupal',
-      //   'Cc' => $cc,
-      //   'Bcc' => $bcc,
-      // ];
-      // if (!\Drupal::service('plugin.manager.mail')->mail('circuit_simulation', 'circuit_simulation_proposal_approved', $email_to, 'en', $params, $from, TRUE)) {
-      //  $msg = \Drupal::messenger()->addError('Error sending email message.');
-      // }
-      $msg = \Drupal::messenger()->addStatus('eSim circuit-simulation proposal No. ' . $proposal_id . ' approved. User has been notified of the approval.');
+
+/* sending email */
+
+// Load user entity safely.
+$user_data = \Drupal::entityTypeManager()
+  ->getStorage('user')
+  ->load($proposal_data->uid);
+
+if ($user_data && $user_data->getEmail()) {
+
+  $email_to = $user_data->getEmail();
+
+  $config = \Drupal::config('circuit_simulation.settings');
+
+  $from = $config->get('circuit_simulation_from_email');
+  $bcc  = $user->getEmail() . ', ' . $config->get('circuit_simulation_emails');
+  $cc   = $config->get('circuit_simulation_cc_emails');
+
+  $params['circuit_simulation_proposal_approved']['proposal_id'] = $proposal_id;
+  $params['circuit_simulation_proposal_approved']['user_id'] = $proposal_data->uid;
+
+  $params['circuit_simulation_proposal_approved']['headers'] = [
+    'From' => $from,
+    'MIME-Version' => '1.0',
+    'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
+    'Content-Transfer-Encoding' => '8Bit',
+    'X-Mailer' => 'Drupal',
+    'Cc' => $cc,
+    'Bcc' => $bcc,
+  ];
+
+  $mailManager = \Drupal::service('plugin.manager.mail');
+
+  $result = $mailManager->mail(
+    'circuit_simulation',
+    'circuit_simulation_proposal_approved',
+    $email_to,
+    \Drupal::languageManager()->getDefaultLanguage()->getId(),
+    $params,
+    $from,
+    TRUE
+  );
+
+  if (!$result['result']) {
+    \Drupal::messenger()->addError(t('Error sending email message.'));
+  }
+}      $msg = \Drupal::messenger()->addStatus('eSim circuit-simulation proposal No. ' . $proposal_id . ' approved. User has been notified of the approval.');
       $response = new RedirectResponse(Url::fromRoute('circuit_simulation.proposal_pending')->toString());
          $response->send();
       //drupal_goto('circuit-simulation-project/manage-proposal');
@@ -277,25 +332,50 @@ class CircuitSimulationProposalApprovalForm extends FormBase {
         ];
         $result = \Drupal::database()->query($query, $args);
         /* sending email */
-        $user_data = \Drupal::entityTypeManager()->getStorage('user')->load($proposal_data->uid);
-        $email_to = $user_data->mail;
-        $from = \Drupal::config('circuit_simulation.settings')->get('circuit_simulation_from_email');
-        $bcc = $user->mail . ', ' . \Drupal::config('circuit_simulation.settings')->get('circuit_simulation_emails');
-        $cc = \Drupal::config('circuit_simulation.settings')->get('circuit_simulation_cc_emails');
-        $params['circuit_simulation_proposal_disapproved']['proposal_id'] = $proposal_id;
-        $params['circuit_simulation_proposal_disapproved']['user_id'] = $proposal_data->uid;
-        $params['circuit_simulation_proposal_disapproved']['headers'] = [
-          'From' => $from,
-          'MIME-Version' => '1.0',
-          'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
-          'Content-Transfer-Encoding' => '8Bit',
-          'X-Mailer' => 'Drupal',
-          'Cc' => $cc,
-          'Bcc' => $bcc,
-        ];
-        // if (!drupal_mail('circuit_simulation', 'circuit_simulation_proposal_disapproved', $email_to, language_default(), $params, $from, TRUE)) {
-        //   \Drupal::messenger()->addError('Error sending email message.');
-        // }
+
+$user_data = \Drupal::entityTypeManager()
+  ->getStorage('user')
+  ->load($proposal_data->uid);
+
+if ($user_data && $user_data->getEmail()) {
+
+  $email_to = $user_data->getEmail();
+
+  $config = \Drupal::config('circuit_simulation.settings');
+
+  $from = $config->get('circuit_simulation_from_email');
+  $bcc  = $user->getEmail() . ', ' . $config->get('circuit_simulation_emails');
+  $cc   = $config->get('circuit_simulation_cc_emails');
+
+  $params['circuit_simulation_proposal_disapproved']['proposal_id'] = $proposal_id;
+  $params['circuit_simulation_proposal_disapproved']['user_id'] = $proposal_data->uid;
+
+  $params['circuit_simulation_proposal_disapproved']['headers'] = [
+    'From' => $from,
+    'MIME-Version' => '1.0',
+    'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
+    'Content-Transfer-Encoding' => '8Bit',
+    'X-Mailer' => 'Drupal',
+    'Cc' => $cc,
+    'Bcc' => $bcc,
+  ];
+
+  $mailManager = \Drupal::service('plugin.manager.mail');
+
+  $result = $mailManager->mail(
+    'circuit_simulation',
+    'circuit_simulation_proposal_disapproved',
+    $email_to,
+    \Drupal::languageManager()->getDefaultLanguage()->getId(),
+    $params,
+    $from,
+    TRUE
+  );
+
+  if (!$result['result']) {
+    \Drupal::messenger()->addMessage(t('Mail send successfully.'));
+  }
+}
         \Drupal::messenger()->addError('eSim circuit simulation proposal No. ' . $proposal_id . ' dis-approved. User has been notified of the dis-approval.');
         $response = new RedirectResponse(Url::fromRoute('circuit_simulation.proposal_pending')->toString());
          $response->send();

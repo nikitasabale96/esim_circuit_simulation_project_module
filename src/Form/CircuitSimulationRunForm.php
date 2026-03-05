@@ -91,9 +91,10 @@ class CircuitSimulationRunForm extends FormBase {
 
     $form['update_circuit_simulation']['download_abstract'] = [
       '#type' => 'item',
-      '#markup' => Link::fromTextAndUrl('Download Abstract', Url::fromUri('internal:/circuit-simulation-project/download/project-file/' . $circuit_simulation_default_value))->toString() .
-              '<br>' .
-              Link::fromTextAndUrl('Download Circuit Simulation', Url::fromUri('internal:/circuit-simulation-project/full-download/project/' . $circuit_simulation_default_value))->toString(),
+      // '#markup' => Link::fromTextAndUrl('Download Abstract', Url::fromUri('internal:/circuit-simulation-project/download/project-file/' . $circuit_simulation_default_value))->toString() 
+              // '<br>' .
+              // Link::fromTextAndUrl('Download Circuit Simulation', Url::fromUri('internal:/circuit-simulation-project/full-download/project/' . $circuit_simulation_default_value))->toString(),
+    
     ];
     /*if (!$url_circuit_simulation_id) {
       $form['circuit_simulation_details'] = [
@@ -163,7 +164,7 @@ function _circuit_simulation_details($circuit_simulation_default_value) {
       : 'Not provided';
 
     // Generate the title link using Url and Link.
-    $title_url = Url::fromUri('internal:/circuit-simulation-project/full-download/project/' . $circuit_simulation_default_value);
+    // $title_url = Url::fromUri('internal:/circuit-simulation-project/full-download/project/' . $circuit_simulation_default_value);
     $title_link = Link::fromTextAndUrl($circuit_simulation_details->project_title, $title_url)->toString();
 
     // Build the markup.

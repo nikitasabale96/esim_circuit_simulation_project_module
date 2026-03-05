@@ -106,7 +106,7 @@ function _list_of_all_completed_circuits() {
     //var_dump($activity_id);die;
       $query = Database::getConnection()->query("SELECT * FROM (
           SELECT 
-            CONCAT('https://esim.fossee.in/circuit-simulation-project/esim-circuit-simulation-run/', e.id) AS link,
+            -- CONCAT('https://esim.fossee.in/circuit-simulation-project/esim-circuit-simulation-run/', e.id) AS link,
             FROM_UNIXTIME(e.actual_completion_date, '%Y') AS actual_completion_date,
             e.project_title AS circuit_title,
             e.contributor_name AS contributor_name,
@@ -116,7 +116,7 @@ function _list_of_all_completed_circuits() {
           WHERE e.approval_status = 3
           UNION ALL
           SELECT 
-            CONCAT('https://esim.fossee.in/hackathon/download/completed-circuits/', h1.id) AS link,
+            -- CONCAT('https://esim.fossee.in/hackathon/download/completed-circuits/', h1.id) AS link,
             '2021' AS actual_completion_date,
             h1.circuit_name AS circuit_title,
             h1.participant_name AS contributor_name,
@@ -188,7 +188,7 @@ $i = count($rows);
 
     case 'csp':
       $query = Database::getConnection()->query("SELECT 
-            CONCAT('https://esim.fossee.in/circuit-simulation-project/esim-circuit-simulation-run/', e.id) AS link,
+          -- CONCAT('https://esim.fossee.in/circuit-simulation-project/esim-circuit-simulation-run/', e.id) AS link,
             FROM_UNIXTIME(e.actual_completion_date, '%Y') AS actual_completion_date,
             e.project_title AS circuit_title,
             e.contributor_name AS contributor_name,
@@ -222,12 +222,12 @@ $i = count($rows);
   ];
   //return $
       break;
-
+// 
     case 'cdsm':
       $query = Database::getConnection()->query("
         SELECT 
-          h1.id, 
-          CONCAT('https://esim.fossee.in/hackathon/download/completed-circuits/', h1.id) AS link,
+       h1.id, 
+      CONCAT('https://esim.fossee.in/hackathon/download/completed-circuits/', h1.id) AS link,
           '2021' AS actual_completion_date,
           h1.circuit_name AS circuit_title,
           h1.participant_name AS contributor_name,
